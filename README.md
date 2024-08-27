@@ -25,7 +25,7 @@ https://thunderpoot.github.io/webdelta/
 Include the script in your HTML:
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/thunderpoot/webdelta@main/dist/webdelta.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/thunderpoot/webdelta@1.0.1/dist/webdelta.min.js"></script>
 ```
 
 #### Download:
