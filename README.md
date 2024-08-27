@@ -8,7 +8,7 @@ https://thunderpoot.github.io/webdelta/
 
 ### Features
 
-- **Automatic Conversion**: Converts UNIX timestamps within `<span>` tags to readable date and time formats.
+- **Automatic Conversion**: Converts UNIX timestamps to readable date and time formats.
 - **Time Zone Support**: Automatically displays times in the user's local time zone or a custom time zone of your choice.
 - **Localised**: Makes use of the JavaScript Intl API to support [multiple locales](https://www.iana.org/assignments/language-subtag-registry/language-subtag-registry).
 - **Relative Time Descriptions**: Displays relative time (e.g., "2 minutes ago" or "in 3 days") with live updating tooltips.
