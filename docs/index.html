@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebDelta Demo</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,300..900;1,300..900&display=swap" rel="stylesheet">
+
+    <style>
+        @keyframes swirlGradient {
+            0% {
+                background-position: 0% 50%;
+            }
+            50% {
+                background-position: 100% 50%;
+            }
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        body {
+            background: linear-gradient(45deg, #2c3e50, #526cb4, #215388, #3498db);
+            background-size: 300% 300%;
+            animation: swirlGradient 8s ease infinite;
+            color: #ecf0f1;
+            /* font-family: 'Helvetica Neue', sans-serif; */
+            font-family: "Figtree", sans-serif;
+            font-weight: 350;
+            font-style: normal;
+            margin: 0;
+            padding: 20px;
+            font-optical-sizing: auto;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 2.5em;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background-color: rgba(52, 73, 94, 0.5);
+            border-radius: 3px;
+            box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.3);
+            padding: 20px;
+        }
+
+        .input-section {
+            margin-bottom: 30px;
+            text-align: left;
+        }
+
+        label {
+            display: block;
+            font-size: 1.2em;
+            margin-bottom: 10px;
+        }
+
+        input[type="text"] {
+            width: calc(100% - 90px);
+            padding: 10px;
+            font-size: 1em;
+            border-radius: 2px;
+            border: none;
+            background-color: #ecf0f1;
+            color: #2c3e50;
+            display: inline-block;
+            vertical-align: middle;
+        }
+
+        input[type="button"] {
+            padding: 10px 20px;
+            font-size: 1em;
+            border-radius: 2px;
+            border: none;
+            background-color: #2980b9;
+            color: #ecf0f1;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            display: inline-block;
+            vertical-align: middle; /* Aligns vertically with the input field */
+        }
+
+        input[type="button"]:hover {
+            background-color: #3498db;
+        }
+
+        .example {
+            margin-bottom: 25px;
+        }
+
+        .example span {
+            font-weight: bold;
+            font-size: 1.1em;
+            background-color: #000;
+            border-radius: 2px;
+            padding: 5px 10px;
+            display: inline-block;
+            cursor: default;
+            margin-bottom: 5px;
+        }
+
+        .example pre {
+            background-color: #2c3e50;
+            padding: 10px;
+            border-radius: 2px;
+            color: #bdc3c7;
+            margin: 0;
+            text-align: left;
+            font-size: 0.9em;
+            overflow-x: auto;
+        }
+
+        #error-message {
+            color: red;
+            font-weight: bold;
+            display: none;
+        }
+
+        .config-section {
+            margin-top: 40px;
+        }
+
+        .examples-section {
+            margin-top: 30px;
+        }
+
+        .example {
+            background-color: rgba(44, 62, 80, 0.75);
+            padding: 15px;
+            border-radius: 3px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            margin-bottom: 20px;
+            color: #ecf0f1;
+        }
+
+        .example span {
+            display: block;
+            font-size: 1.4em;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: #ffffff;
+        }
+
+        .hl-class {
+            color: color(display-p3 0.177 0.657 0.869 / 0.801);
+        }
+
+        .example pre {
+            background-color: #34495e;
+            padding: 10px;
+            border-radius: 4px;
+            color: #bdc3c7;
+            overflow-x: auto;
+            font-size: 0.95em;
+            margin: 0;
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        pre {
+            background-color: #1c2833;
+            padding: 10px;
+            border-radius: 5px;
+            color: #e5e5e5;
+            text-align: left;
+            font-size: 0.9em;
+            overflow-x: auto;
+        }
+
+        .options-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .options-table th, .options-table td {
+            padding: 8px;
+            border-bottom: 0.5px solid #5D6E82;
+            text-align: left;
+        }
+
+        .options-table th {
+            border-bottom: 1px solid #5D6E82;
+        }
+
+        h2 {
+            border-bottom: 0.5px solid #5D6E82;
+            padding-top: 20px;
+            padding-bottom: 10px;
+        }
+
+        ul, ol {
+            margin-left: 20px;
+        }
+
+        a {
+            color: #fff;
+            /* text-decoration: none; */
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        footer {
+            text-align: center;
+        }
+
+        .bigLogo {
+            display: flex;
+            justify-content: center;
+            font-size: 200px;
+            font-family: "Menlo", monospace;
+            transform: translateY(30px);
+        }
+
+        .swirly {
+            background: linear-gradient(45deg, #6c9ccc, #96adeb, #5c87b6, #3498db);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: swirlyColors 4s infinite ease-in-out;
+            background-size: 200% 200%;
+        }
+
+        @keyframes swirlyColors {
+            0% {
+                background-position: 0% 50%;
+            }
+            50% {
+                background-position: 100% 50%;
+            }
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        @keyframes swirlyColors {
+            0% {
+                background-position: 0% 50%;
+            }
+            50% {
+                background-position: 100% 50%;
+            }
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <span class="bigLogo swirly">Δδ</span>
+    <h1 class="swirly"><code>webdelta.js</code></h1>
+    <div class="container">
+        <h2>Description</h2>
+        <p><code>webdelta.js</code> is a versatile JavaScript utility that allows you to easily convert UNIX timestamps into human-readable dates, times, and relative time descriptions directly on your webpages. This script dynamically displays time information with customisable tooltips and formats.</p>
+        <p>Simply include the script, to make any element with the <code>webDelta</code> class (which contains a valid UNIX timestamp) will be displayed as a time/date string with a tooltip that displays the time until (or since) the given timestamp.  See below for examples.</p>
+        <h2>Features</h2>
+        <ul>
+            <li><strong>Automatic Conversion</strong>: Converts UNIX timestamps within <code>&lt;span&gt;</code> tags to readable date and time formats.</li>
+            <li><strong>Time Zone Support</strong>: Automatically displays times in the user's local time zone or a custom time zone of your choice.</li>
+            <li><strong>Relative Time Descriptions</strong>: Displays relative time (e.g., "2 minutes ago" or "in 3 days") with live updating tooltips.</li>
+            <li><strong>Custom Formatting</strong>: Choose from various formatting options like <code>short</code>, <code>medium</code>, <code>long</code>, and <code>full</code> for dates and times.</li>
+            <li><strong>Tooltip Customization</strong>: Fully customizable tooltips with adjustable styles and behaviors, including support for dynamic updates every second.</li>
+            <li><strong>Synchronization</strong>: Ensures that all time updates are perfectly synchronized with the real-time clock.</li>
+            <li><strong>Easy Integration</strong>: Just include the script on your webpage and add the appropriate classes to your tags.</li>
+            <li><strong>Multiple Display Modes</strong>: Display only the date, only the time, or both, with or without time zones.</li>
+        </ul>
+
+        <h2>Installation</h2>
+        <h3>CDN:</h3>
+        <ol>
+            <li><strong>Include the Script</strong>: Add the following line in your HTML to include the script.
+                <pre>&lt;script src="jsdelivr link"&gt;&lt;/script&gt;</pre>
+        </ol>
+        <h3>Download:</h3>
+        <ol>
+            <li><strong>Download the Script</strong>: Download the <code>webdelta.js</code> file and include it in your project.</li>
+            <li><strong>Include the Script</strong>: Add the following line in your HTML to include the script.
+                <pre>&lt;script src="path/to/webdelta.js"&gt;&lt;/script&gt;</pre>
+            </li>
+        </ol>
+
+        <h2>Demo</h2>
+        <div class="input-section">
+            <label for="timestamp">Enter a UNIX Timestamp to update the examples below:</label>
+            <input type="text" id="timestamp" placeholder="Enter a UNIX timestamp, e.g.: 119731017">
+            <!-- ♥️ https://en.wikipedia.org/wiki/Unix_time#Notable_events_in_Unix_time -->
+            <input type="button" value="Go" onclick="convertTimestamp()">
+            <div id="error-message">Please enter a valid UNIX timestamp.</div>
+        </div>
+
+        <div class="examples-section">
+            <h2>Examples</h2>
+            <p>Hover your cursor over the timestamps below to display tooltips (unless the <code>noTooltip</code> class is present):</p>
+
+            <div class="example">
+                <span class="webDelta">119731017</span>
+                <pre>&lt;span class="webDelta<strong class="hl-class"></strong>"&gt;119731017&lt;/span&gt;</pre>
+            </div>
+
+            <div class="example">
+                <span class="webDelta deltaLong">119731017</span>
+                <pre>&lt;span class="webDelta<strong class="hl-class"> deltaLong</strong>"&gt;119731017&lt;/span&gt;</pre>
+            </div>
+
+            <div class="example">
+                <span class="webDelta deltaLonger">119731017</span>
+                <pre>&lt;span class="webDelta<strong class="hl-class"> deltaLonger</strong>"&gt;119731017&lt;/span&gt;</pre>
+            </div>
+
+            <div class="example">
+                <span class="webDelta dateOnly noTooltip">119731017</span>
+                <pre>&lt;span class="webDelta<strong class="hl-class"> dateOnly noTooltip</strong>"&gt;119731017&lt;/span&gt;</pre>
+            </div>
+
+            <div class="example">
+                <span class="webDelta dateOnly">119731017</span>
+                <pre>&lt;span class="webDelta<strong class="hl-class"> dateOnly</strong>"&gt;119731017&lt;/span&gt;</pre>
+            </div>
+
+            <div class="example">
+                <span class="webDelta timeOnly">119731017</span>
+                <pre>&lt;span class="webDelta<strong class="hl-class"> timeOnly</strong>"&gt;119731017&lt;/span&gt;</pre>
+            </div>
+
+            <div class="example">
+                <span class="webDelta iso8601">119731017</span>
+                <pre>&lt;span class="webDelta<strong class="hl-class"> iso8601</strong>"&gt;119731017&lt;/span&gt;</pre>
+            </div>
+
+            <div class="example">
+                <span class="webDelta short">119731017</span>
+                <pre>&lt;span class="webDelta<strong class="hl-class"> short</strong>"&gt;119731017&lt;/span&gt;</pre>
+            </div>
+
+            <div class="example">
+                <span class="webDelta medium">119731017</span>
+                <pre>&lt;span class="webDelta<strong class="hl-class"> medium</strong>"&gt;119731017&lt;/span&gt;</pre>
+            </div>
+
+            <div class="example">
+                <span class="webDelta long">119731017</span>
+                <pre>&lt;span class="webDelta<strong class="hl-class"> long</strong>"&gt;119731017&lt;/span&gt;</pre>
+            </div>
+
+            <div class="example">
+                <span class="webDelta full">119731017</span>
+                <pre>&lt;span class="webDelta<strong class="hl-class"> full</strong>"&gt;119731017&lt;/span&gt;</pre>
+            </div>
+
+            <div class="example">
+                <span class="webDelta timeOnly weekday noTZ">119731017</span>
+                <pre>&lt;span class="webDelta<strong class="hl-class"> timeOnly weekday noTZ</strong>"&gt;119731017&lt;/span&gt;</pre>
+            </div>
+
+            <div class="example">
+                <span class="webDelta noTZ">119731017</span>
+                <pre>&lt;span class="webDelta<strong class="hl-class"> noTZ</strong>"&gt;119731017&lt;/span&gt;</pre>
+            </div>
+        </div>
+
+        <div class="classes-section">
+            <h2>Available Options</h2>
+            <p>The following class attributes may be used to specify parameters for <code>webdelta.js</code>.  Some are mutually exclusive.</p>
+            <table class="options-table">
+                <thead>
+                    <tr>
+                        <th>Class</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>dateOnly</code></td>
+                        <td>Display only the date (with time zone unless <code>noTZ</code> is present).</td>
+                    </tr>
+                    <tr>
+                        <td><code>timeOnly</code></td>
+                        <td>Display only the time (with time zone unless <code>noTZ</code> is present).</td>
+                    </tr>
+                    <tr>
+                        <td><code>iso8601</code></td>
+                        <td>Display the date and time in ISO 8601 format.</td>
+                    </tr>
+                    <tr>
+                        <td><code>short</code></td>
+                        <td>Display the date and time in a short format.</td>
+                    </tr>
+                    <tr>
+                        <td><code>medium</code></td>
+                        <td>Display the date and time in a medium format.</td>
+                    </tr>
+                    <tr>
+                        <td><code>long</code></td>
+                        <td>Display the date and time in a long format.</td>
+                    </tr>
+                    <tr>
+                        <td><code>full</code></td>
+                        <td>Display the date and time in a full format.</td>
+                    </tr>
+                    <tr>
+                        <td><code>weekday</code></td>
+                        <td>Include the full weekday name in the date and time string.</td>
+                    </tr>
+                    <tr>
+                        <td><code>utc</code></td>
+                        <td>Force the date and time to be displayed in UTC.</td>
+                    </tr>
+                    <tr>
+                        <td><code>noTZ</code></td>
+                        <td>Disable the time zone display.</td>
+                    </tr>
+                    <tr>
+                        <td><code>deltaLong</code></td>
+                        <td>Display the time difference in major units (e.g., <code>3 years ago</code>).</td>
+                    </tr>
+                    <tr>
+                        <td><code>deltaLonger</code></td>
+                        <td>Display detailed delta (e.g., <code>3 years, 2 days, 15 hours, 12 minutes, 15 seconds ago</code>).</td>
+                    </tr>
+                    <tr>
+                        <td><code>noTooltip</code></td>
+                        <td>Disable the tooltip display.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="config-section">
+            <h2>Example Configuration Code</h2>
+            <p>To customise the behaviour and appearance of <code>webdelta.js</code> you can embed the following JavaScript on your page:</p>
+            <pre>
+&lt;script&gt;
+    window.webDeltaConfig = {
+        tooltipBorderRadius: '8px',
+        tooltipFont: 'Helvetica, sans-serif',
+        tooltipFontSize: '16px',
+        tooltipXOffset: 20,
+        tooltipYOffset: 20,
+        timeZone: 'Europe/Madrid',
+        lang: 'spa',
+        tooltipBackgroundColor: '#333333',
+        tooltipForegroundColor: '#ffcc00'
+    };
+&lt;/script&gt;</pre>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2024 T E Vaughan.</p>
+        <p>Check out the project on <a href="https://github.com/thunderpoot/webdelta" target="_blank">GitHub</a>.</p>
+    </footer>
+
+    <script src="../dist/webdelta.js"></script>
+
+    <!-- Custom script for demo -->
+    <script>
+        function convertTimestamp() {
+            const timestampInput = document.getElementById('timestamp').value;
+            const errorMessage = document.getElementById('error-message');
+
+            const parsedTimestamp = parseInt(timestampInput);
+            if (!isNaN(parsedTimestamp)) {
+                errorMessage.style.display = 'none';
+
+                const examples = document.querySelectorAll('.examples-section .example');
+
+                examples.forEach(example => {
+                    const span = example.querySelector('span.webDelta');
+                    span.textContent = timestampInput;
+
+                    const pre = example.querySelector('pre');
+                    const spanClasses = span.className;
+                    pre.textContent = `<span class="${spanClasses}">${timestampInput}</span>`;
+                });
+
+                // Re-run the webdelta.js logic
+                document.dispatchEvent(new Event('DOMContentLoaded'));
+            } else {
+                errorMessage.style.display = 'block';
+            }
+        }
+    </script>
+</body>
+</html>
