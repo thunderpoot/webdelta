@@ -307,7 +307,12 @@
 
             <div class="example">
                 <span class="webDelta">119731017</span>
-                <pre>&lt;span class="webDelta<strong class="hl-class"></strong>"&gt;119731017&lt;/span&gt;</pre>
+                <pre>&lt;span class="webDelta"&gt;119731017&lt;/span&gt;</pre>
+            </div>
+
+            <div class="example">
+                <span class="webDelta raw">119731017</span>
+                <pre>&lt;span class="webDelta <strong class="hl-class">raw</strong>"&gt;119731017&lt;/span&gt;</pre>
             </div>
 
             <div class="example">
@@ -372,6 +377,10 @@
                     </tr>
                 </thead>
                 <tbody>
+                    <tr>
+                        <td><code>raw</code></td>
+                        <td>Don't format the date, preserve the UNIX timestamp.</td>
+                    </tr>
                     <tr>
                         <td><code>dateOnly</code></td>
                         <td>Display only the date (with time zone unless <code>noTZ</code> is present).</td>

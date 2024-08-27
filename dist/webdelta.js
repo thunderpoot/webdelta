@@ -13,72 +13,76 @@ document.addEventListener("DOMContentLoaded", function() {
   const elements = document.querySelectorAll("span.webDelta");
   elements.forEach((element) => {
     const timestamp = parseInt(element.textContent.trim());
-    if (isNaN(timestamp)) {
-      console.error(`Invalid timestamp: ${element.textContent.trim()}`);
-      element.textContent = "Invalid timestamp";
-      return;
-    }
     const date = new Date(timestamp * 1e3);
     const useUTC = element.classList.contains("utc");
     const timeZone = useUTC ? "UTC" : window.webDeltaConfig.timeZone || Intl.DateTimeFormat().resolvedOptions().timeZone;
     const locale = window.webDeltaConfig.lang || void 0;
     let options = { timeZone };
     let formattedDate = "";
-    if (element.classList.contains("timeOnly")) {
-      options = {
-        hour: "numeric",
-        minute: "numeric",
-        second: "numeric",
-        ...options
-      };
-      if (element.classList.contains("weekday")) {
-        const weekdayOptions = { weekday: "long", timeZone };
-        const weekdayStr = date.toLocaleDateString(locale, weekdayOptions);
-        const timeStr = date.toLocaleTimeString(locale, options);
-        formattedDate = `${weekdayStr}, ${timeStr}`;
-      } else {
-        formattedDate = date.toLocaleTimeString(locale, options);
-      }
-    } else if (element.classList.contains("dateOnly")) {
-      options = {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-        ...options
-      };
-      if (element.classList.contains("weekday")) {
-        options.weekday = "long";
-      }
-      formattedDate = date.toLocaleDateString(locale, options);
-    } else if (element.classList.contains("iso8601")) {
-      formattedDate = date.toISOString();
+    if (element.classList.contains("raw")) {
+      formattedDate = timestamp;
     } else {
-      if (element.classList.contains("short")) {
-        options = { ...options, dateStyle: "short", timeStyle: "short" };
-      } else if (element.classList.contains("medium")) {
-        options = { ...options, dateStyle: "medium", timeStyle: "medium" };
-      } else if (element.classList.contains("long")) {
-        options = { ...options, dateStyle: "long", timeStyle: "long" };
-      } else if (element.classList.contains("full")) {
-        options = { ...options, dateStyle: "full", timeStyle: "long" };
-      } else {
+      if (isNaN(timestamp)) {
+        console.error(`Invalid timestamp: ${element.textContent.trim()}`);
+        element.textContent = "Invalid timestamp";
+        return;
+      }
+      if (element.classList.contains("timeOnly")) {
         options = {
-          year: "numeric",
-          month: "long",
-          day: "numeric",
           hour: "numeric",
           minute: "numeric",
           second: "numeric",
           ...options
         };
+        if (element.classList.contains("weekday")) {
+          const weekdayOptions = { weekday: "long", timeZone };
+          const weekdayStr = date.toLocaleDateString(locale, weekdayOptions);
+          const timeStr = date.toLocaleTimeString(locale, options);
+          formattedDate = `${weekdayStr}, ${timeStr}`;
+        } else {
+          formattedDate = date.toLocaleTimeString(locale, options);
+        }
+      } else if (element.classList.contains("dateOnly")) {
+        options = {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+          ...options
+        };
+        if (element.classList.contains("weekday")) {
+          options.weekday = "long";
+        }
+        formattedDate = date.toLocaleDateString(locale, options);
+      } else if (element.classList.contains("iso8601")) {
+        formattedDate = date.toISOString();
+      } else {
+        if (element.classList.contains("short")) {
+          options = { ...options, dateStyle: "short", timeStyle: "short" };
+        } else if (element.classList.contains("medium")) {
+          options = { ...options, dateStyle: "medium", timeStyle: "medium" };
+        } else if (element.classList.contains("long")) {
+          options = { ...options, dateStyle: "long", timeStyle: "long" };
+        } else if (element.classList.contains("full")) {
+          options = { ...options, dateStyle: "full", timeStyle: "long" };
+        } else {
+          options = {
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+            hour: "numeric",
+            minute: "numeric",
+            second: "numeric",
+            ...options
+          };
+        }
+        if (element.classList.contains("weekday") && !element.classList.contains("short")) {
+          options.weekday = "long";
+        }
+        formattedDate = date.toLocaleString(locale, options);
       }
-      if (element.classList.contains("weekday") && !element.classList.contains("short")) {
-        options.weekday = "long";
+      if (!element.classList.contains("noTZ") && !element.classList.contains("iso8601") && !formattedDate.includes(timeZone)) {
+        formattedDate += ` ${timeZone}`;
       }
-      formattedDate = date.toLocaleString(locale, options);
-    }
-    if (!element.classList.contains("noTZ") && !element.classList.contains("iso8601") && !formattedDate.includes(timeZone)) {
-      formattedDate += ` ${timeZone}`;
     }
     element.textContent = formattedDate;
     if (element.classList.contains("noTooltip")) {

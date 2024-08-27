@@ -35,77 +35,83 @@ document.addEventListener("DOMContentLoaded", function () {
 
     elements.forEach(element => {
         const timestamp = parseInt(element.textContent.trim());
-        if (isNaN(timestamp)) {
-            console.error(`Invalid timestamp: ${element.textContent.trim()}`);
-            element.textContent = "Invalid timestamp";
-            return;
-        }
-
         const date = new Date(timestamp * 1000);
         const useUTC = element.classList.contains('utc');
         const timeZone = useUTC ? 'UTC' : (window.webDeltaConfig.timeZone || Intl.DateTimeFormat().resolvedOptions().timeZone);
         const locale = window.webDeltaConfig.lang || undefined;
         let options = { timeZone: timeZone };
+
         let formattedDate = '';
 
-        if (element.classList.contains('timeOnly')) {
-            options = {
-                hour: 'numeric',
-                minute: 'numeric',
-                second: 'numeric',
-                ...options
-            };
-            if (element.classList.contains('weekday')) {
-                const weekdayOptions = { weekday: 'long', timeZone: timeZone };
-                const weekdayStr = date.toLocaleDateString(locale, weekdayOptions);
-                const timeStr = date.toLocaleTimeString(locale, options);
-                formattedDate = `${weekdayStr}, ${timeStr}`;
-            } else {
-                formattedDate = date.toLocaleTimeString(locale, options);
+        if (element.classList.contains('raw')) {
+            formattedDate = timestamp;
+        }
+        else {
+            if (isNaN(timestamp)) {
+                console.error(`Invalid timestamp: ${element.textContent.trim()}`);
+                element.textContent = "Invalid timestamp";
+                return;
             }
-        } else if (element.classList.contains('dateOnly')) {
-            options = {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-                ...options
-            };
-            if (element.classList.contains('weekday')) {
-                options.weekday = 'long';
-            }
-            formattedDate = date.toLocaleDateString(locale, options);
-        } else if (element.classList.contains('iso8601')) {
-            formattedDate = date.toISOString();
-        } else {
-            if (element.classList.contains('short')) {
-                options = { ...options, dateStyle: 'short', timeStyle: 'short' };
-            } else if (element.classList.contains('medium')) {
-                options = { ...options, dateStyle: 'medium', timeStyle: 'medium' };
-            } else if (element.classList.contains('long')) {
-                options = { ...options, dateStyle: 'long', timeStyle: 'long' };
-            } else if (element.classList.contains('full')) {
-                options = { ...options, dateStyle: 'full', timeStyle: 'long' };
-            } else {
-                // Default format (equivalent to 'long')
+
+            if (element.classList.contains('timeOnly')) {
                 options = {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
                     hour: 'numeric',
                     minute: 'numeric',
                     second: 'numeric',
                     ...options
                 };
+                if (element.classList.contains('weekday')) {
+                    const weekdayOptions = { weekday: 'long', timeZone: timeZone };
+                    const weekdayStr = date.toLocaleDateString(locale, weekdayOptions);
+                    const timeStr = date.toLocaleTimeString(locale, options);
+                    formattedDate = `${weekdayStr}, ${timeStr}`;
+                } else {
+                    formattedDate = date.toLocaleTimeString(locale, options);
+                }
+            } else if (element.classList.contains('dateOnly')) {
+                options = {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                    ...options
+                };
+                if (element.classList.contains('weekday')) {
+                    options.weekday = 'long';
+                }
+                formattedDate = date.toLocaleDateString(locale, options);
+            } else if (element.classList.contains('iso8601')) {
+                formattedDate = date.toISOString();
+            } else {
+                if (element.classList.contains('short')) {
+                    options = { ...options, dateStyle: 'short', timeStyle: 'short' };
+                } else if (element.classList.contains('medium')) {
+                    options = { ...options, dateStyle: 'medium', timeStyle: 'medium' };
+                } else if (element.classList.contains('long')) {
+                    options = { ...options, dateStyle: 'long', timeStyle: 'long' };
+                } else if (element.classList.contains('full')) {
+                    options = { ...options, dateStyle: 'full', timeStyle: 'long' };
+                } else {
+                    // Default format (equivalent to 'long')
+                    options = {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                        hour: 'numeric',
+                        minute: 'numeric',
+                        second: 'numeric',
+                        ...options
+                    };
+                }
+                if (element.classList.contains('weekday') && !element.classList.contains('short')) {
+                    options.weekday = 'long';
+                }
+                formattedDate = date.toLocaleString(locale, options);
             }
-            if (element.classList.contains('weekday') && !element.classList.contains('short')) {
-                options.weekday = 'long';
-            }
-            formattedDate = date.toLocaleString(locale, options);
-        }
 
-        // Add time zone information if not using noTZ class and timezone is not already included
-        if (!element.classList.contains('noTZ') && !element.classList.contains('iso8601') && !formattedDate.includes(timeZone)) {
-            formattedDate += ` ${timeZone}`;
+            // Add time zone information if not using noTZ class and timezone is not already included
+            if (!element.classList.contains('noTZ') && !element.classList.contains('iso8601') && !formattedDate.includes(timeZone)) {
+                formattedDate += ` ${timeZone}`;
+            }
         }
 
         element.textContent = formattedDate;
