@@ -13,7 +13,7 @@ https://thunderpoot.github.io/webdelta/
 - **Localised**: Makes use of the JavaScript Intl API to support [multiple locales](https://www.iana.org/assignments/language-subtag-registry/language-subtag-registry).
 - **Relative Time Descriptions**: Displays relative time (e.g., "2 minutes ago" or "in 3 days") with live updating tooltips.
 - **Custom Formatting**: Choose from various formatting options like `short`, `medium`, `long`, and `full` for dates and times.
-- **Tooltip Customisation**: Fully customisable tooltips with adjustable styles and behaviors, including support for dynamic updates every second.
+- **Tooltip Customisation**: Fully customisable tooltips with adjustable styles and behaviours, including support for dynamic updates every second.
 - **Synchronisation**: Ensures that all time updates are perfectly synchronised with the real-time clock.
 - **Easy Integration**: Just include the script on your webpage and add the appropriate classes to your tags.
 - **Multiple Display Modes**: Display only the date, only the time, or both, with or without time zones.
@@ -25,7 +25,7 @@ https://thunderpoot.github.io/webdelta/
 Include the script in your HTML:
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/thunderpoot/webdelta@main/webdelta.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/thunderpoot/webdelta@main/dist/webdelta.min.js"></script>
 ```
 
 #### Download:
@@ -69,7 +69,7 @@ Include the script in your HTML:
 
 ### Configuration
 
-You can customise the behavior and appearance of `webdelta.js` by adding the following configuration to your page:
+You can customise the behaviour and appearance of `webdelta.js` by adding the following configuration to your page:
 
 ```html
 <script>
