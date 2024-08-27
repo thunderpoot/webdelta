@@ -1,9 +1,11 @@
 window.webDeltaConfig = {
-  tooltipBorderRadius: "0",
+  tooltipBorderRadius: "5px",
   tooltipFont: "Menlo, monospaced",
   tooltipXOffset: 15,
   tooltipYOffset: 15,
   timeZone: "UTC",
+  lang: "en",
+  // Supports BCP47 values such as sv-SE or en-GB
   tooltipBackgroundColor: "black",
   tooltipForegroundColor: "white"
 };
@@ -19,6 +21,7 @@ document.addEventListener("DOMContentLoaded", function() {
     const date = new Date(timestamp * 1e3);
     const useUTC = element.classList.contains("utc");
     const timeZone = useUTC ? "UTC" : window.webDeltaConfig.timeZone || Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const locale = window.webDeltaConfig.lang || void 0;
     let options = { timeZone };
     let formattedDate = "";
     if (element.classList.contains("timeOnly")) {
@@ -30,11 +33,11 @@ document.addEventListener("DOMContentLoaded", function() {
       };
       if (element.classList.contains("weekday")) {
         const weekdayOptions = { weekday: "long", timeZone };
-        const weekdayStr = date.toLocaleDateString(void 0, weekdayOptions);
-        const timeStr = date.toLocaleTimeString(void 0, options);
+        const weekdayStr = date.toLocaleDateString(locale, weekdayOptions);
+        const timeStr = date.toLocaleTimeString(locale, options);
         formattedDate = `${weekdayStr}, ${timeStr}`;
       } else {
-        formattedDate = date.toLocaleTimeString(void 0, options);
+        formattedDate = date.toLocaleTimeString(locale, options);
       }
     } else if (element.classList.contains("dateOnly")) {
       options = {
@@ -46,7 +49,7 @@ document.addEventListener("DOMContentLoaded", function() {
       if (element.classList.contains("weekday")) {
         options.weekday = "long";
       }
-      formattedDate = date.toLocaleDateString(void 0, options);
+      formattedDate = date.toLocaleDateString(locale, options);
     } else if (element.classList.contains("iso8601")) {
       formattedDate = date.toISOString();
     } else {
@@ -72,7 +75,7 @@ document.addEventListener("DOMContentLoaded", function() {
       if (element.classList.contains("weekday") && !element.classList.contains("short")) {
         options.weekday = "long";
       }
-      formattedDate = date.toLocaleString(void 0, options);
+      formattedDate = date.toLocaleString(locale, options);
     }
     if (!element.classList.contains("noTZ") && !element.classList.contains("iso8601") && !formattedDate.includes(timeZone)) {
       formattedDate += ` ${timeZone}`;
@@ -104,50 +107,24 @@ document.addEventListener("DOMContentLoaded", function() {
       const now2 = /* @__PURE__ */ new Date();
       const timeDiff = date - now2;
       const absDiff = Math.abs(timeDiff);
-      const seconds = Math.floor(absDiff / 1e3);
-      const minutes = Math.floor(seconds / 60);
-      const hours = Math.floor(minutes / 60);
-      const days = Math.floor(hours / 24);
-      const years = Math.floor(days / 365.25);
-      const remainingDays = days % 365.25;
-      const remainingHours = hours % 24;
-      const remainingMinutes = minutes % 60;
-      const remainingSeconds = seconds % 60;
+      const rtf = new Intl.RelativeTimeFormat(locale, { numeric: "auto" });
       let timeAgo = "";
-      if (element.classList.contains("deltaLonger")) {
-        const parts = [];
-        if (years > 0) parts.push(`${years} year${years > 1 ? "s" : ""}`);
-        if (Math.floor(remainingDays) > 0) parts.push(`${Math.floor(remainingDays)} day${Math.floor(remainingDays) > 1 ? "s" : ""}`);
-        if (remainingHours > 0) parts.push(`${remainingHours} hour${remainingHours > 1 ? "s" : ""}`);
-        if (remainingMinutes > 0) parts.push(`${remainingMinutes} minute${remainingMinutes > 1 ? "s" : ""}`);
-        if (remainingSeconds > 0) parts.push(`${remainingSeconds} second${remainingSeconds > 1 ? "s" : ""}`);
-        timeAgo = parts.join(", ");
-      } else if (element.classList.contains("deltaLong")) {
-        if (years > 0) {
-          timeAgo = `${years} year${years > 1 ? "s" : ""}`;
-        } else if (days > 0) {
-          timeAgo = `${days} day${days > 1 ? "s" : ""}`;
-        } else if (hours > 0) {
-          timeAgo = `${hours} hour${hours > 1 ? "s" : ""}`;
-        } else if (minutes > 0) {
-          timeAgo = `${minutes} minute${minutes > 1 ? "s" : ""}`;
-        } else if (seconds > 0) {
-          timeAgo = `${seconds} second${seconds > 1 ? "s" : ""}`;
-        }
+      if (absDiff >= 31536e6) {
+        const years = Math.floor(timeDiff / 31536e6);
+        timeAgo = rtf.format(years, "year");
+      } else if (absDiff >= 864e5) {
+        const days = Math.floor(timeDiff / 864e5);
+        timeAgo = rtf.format(days, "day");
+      } else if (absDiff >= 36e5) {
+        const hours = Math.floor(timeDiff / 36e5);
+        timeAgo = rtf.format(hours, "hour");
+      } else if (absDiff >= 6e4) {
+        const minutes = Math.floor(timeDiff / 6e4);
+        timeAgo = rtf.format(minutes, "minute");
       } else {
-        if (years > 0) {
-          timeAgo = `${years}y`;
-        } else if (days > 0) {
-          timeAgo = `${days}d`;
-        } else if (hours > 0) {
-          timeAgo = `${hours}h`;
-        } else if (minutes > 0) {
-          timeAgo = `${minutes}m`;
-        } else {
-          timeAgo = `${seconds}s`;
-        }
+        const seconds = Math.floor(timeDiff / 1e3);
+        timeAgo = rtf.format(seconds, "second");
       }
-      timeAgo = timeDiff >= 0 ? `in ${timeAgo}` : `${timeAgo} ago`;
       tooltip.textContent = timeAgo;
     };
     const startInterval = () => {

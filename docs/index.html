@@ -41,6 +41,10 @@
             font-size: 2.5em;
         }
 
+        .heart {
+            cursor: default;
+        }
+
         .container {
             max-width: 900px;
             margin: 0 auto;
@@ -117,8 +121,8 @@
         }
 
         #error-message {
-            color: red;
-            font-weight: bold;
+            margin-top: 10px;
+            color: rgb(218, 108, 108);
             display: none;
         }
 
@@ -217,6 +221,7 @@
             font-size: 200px;
             font-family: "Menlo", monospace;
             transform: translateY(30px);
+            text-shadow: rgba(255, 255, 255, 0.15) 1px 1px 10px;
         }
 
         .swirly {
@@ -253,8 +258,10 @@
     </style>
 </head>
 <body>
-    <span class="bigLogo swirly">Δδ</span>
-    <h1 class="swirly"><code>webdelta.js</code></h1>
+    <header class="heart" data-tooltip="❤️">
+        <span class="bigLogo swirly"">Δδ</span>
+        <h1 class="swirly"><code>webdelta.js</code></h1>
+    </header>
     <div class="container">
         <h2>Description</h2>
         <p><code>webdelta.js</code> is a versatile JavaScript utility that allows you to easily convert UNIX timestamps into human-readable dates, times, and relative time descriptions directly on your webpages. This script dynamically displays time information with customisable tooltips and formats.</p>
@@ -263,6 +270,7 @@
         <ul>
             <li><strong>Automatic Conversion</strong>: Converts UNIX timestamps within <code>&lt;span&gt;</code> tags to readable date and time formats.</li>
             <li><strong>Time Zone Support</strong>: Automatically displays times in the user's local time zone or a custom time zone of your choice.</li>
+            <li><strong>Localised</strong>: Makes use of the JavaScript Intl API to support <a target="_blank" href="https://www.iana.org/assignments/language-subtag-registry/language-subtag-registry">multiple locales</a>.</li>
             <li><strong>Relative Time Descriptions</strong>: Displays relative time (e.g., "2 minutes ago" or "in 3 days") with live updating tooltips.</li>
             <li><strong>Custom Formatting</strong>: Choose from various formatting options like <code>short</code>, <code>medium</code>, <code>long</code>, and <code>full</code> for dates and times.</li>
             <li><strong>Tooltip Customization</strong>: Fully customizable tooltips with adjustable styles and behaviors, including support for dynamic updates every second.</li>
@@ -304,18 +312,8 @@
             </div>
 
             <div class="example">
-                <span class="webDelta deltaLong">119731017</span>
-                <pre>&lt;span class="webDelta<strong class="hl-class"> deltaLong</strong>"&gt;119731017&lt;/span&gt;</pre>
-            </div>
-
-            <div class="example">
-                <span class="webDelta deltaLonger">119731017</span>
-                <pre>&lt;span class="webDelta<strong class="hl-class"> deltaLonger</strong>"&gt;119731017&lt;/span&gt;</pre>
-            </div>
-
-            <div class="example">
-                <span class="webDelta dateOnly noTooltip">119731017</span>
-                <pre>&lt;span class="webDelta<strong class="hl-class"> dateOnly noTooltip</strong>"&gt;119731017&lt;/span&gt;</pre>
+                <span class="webDelta weekday noTooltip">119731017</span>
+                <pre>&lt;span class="webDelta<strong class="hl-class"> weekday noTooltip</strong>"&gt;119731017&lt;/span&gt;</pre>
             </div>
 
             <div class="example">
@@ -416,14 +414,6 @@
                         <td>Disable the time zone display.</td>
                     </tr>
                     <tr>
-                        <td><code>deltaLong</code></td>
-                        <td>Display the time difference in major units (e.g., <code>3 years ago</code>).</td>
-                    </tr>
-                    <tr>
-                        <td><code>deltaLonger</code></td>
-                        <td>Display detailed delta (e.g., <code>3 years, 2 days, 15 hours, 12 minutes, 15 seconds ago</code>).</td>
-                    </tr>
-                    <tr>
                         <td><code>noTooltip</code></td>
                         <td>Disable the tooltip display.</td>
                     </tr>
@@ -443,7 +433,7 @@
         tooltipXOffset: 20,
         tooltipYOffset: 20,
         timeZone: 'Europe/Madrid',
-        lang: 'spa',
+        lang: 'es', // Supports BCP47 values such as sv-SE or en-GB
         tooltipBackgroundColor: '#333333',
         tooltipForegroundColor: '#ffcc00'
     };
@@ -452,8 +442,8 @@
     </div>
 
     <footer>
-        <p>&copy; 2024 T E Vaughan.</p>
-        <p>Check out the project on <a href="https://github.com/thunderpoot/webdelta" target="_blank">GitHub</a>.</p>
+        <p>This documentation was written on <span class="webDelta weekday">1724769141</span>.</p>
+        <p>&copy; 2024 T E Vaughan. Check out the project on <a href="https://github.com/thunderpoot/webdelta" target="_blank">GitHub</a>.</p>
     </footer>
 
     <script src="../dist/webdelta.js"></script>
@@ -461,6 +451,9 @@
     <!-- Custom script for demo -->
     <script>
         function convertTimestamp() {
+            const existingTooltips = document.querySelectorAll('.webDelta-tooltip');
+            existingTooltips.forEach(tooltip => tooltip.remove());
+
             const timestampInput = document.getElementById('timestamp').value;
             const errorMessage = document.getElementById('error-message');
 
@@ -485,6 +478,56 @@
                 errorMessage.style.display = 'block';
             }
         }
+
+        document.addEventListener("DOMContentLoaded", function () {
+            const bigLogo = document.querySelector('.heart');
+
+            if (bigLogo) {
+                const tooltip = document.createElement('span');
+                tooltip.className = 'webDelta-tooltip';
+                tooltip.style.position = 'absolute';
+                tooltip.style.padding = '8px';
+                tooltip.style.backgroundColor = window.webDeltaConfig.tooltipBackgroundColor || 'black';
+                tooltip.style.color = window.webDeltaConfig.tooltipForegroundColor || 'white';
+                tooltip.style.borderRadius = window.webDeltaConfig.tooltipBorderRadius || '5px';
+                tooltip.style.fontFamily = window.webDeltaConfig.tooltipFont || 'Menlo, monospaced';
+                tooltip.style.whiteSpace = 'nowrap';
+                tooltip.style.visibility = 'hidden';
+                tooltip.style.opacity = '0';
+                tooltip.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+                tooltip.style.pointerEvents = 'none';
+                tooltip.style.transform = 'scale(0.8)';
+                tooltip.style.zIndex = '1000';
+                tooltip.textContent = bigLogo.getAttribute('data-tooltip');
+
+                document.body.appendChild(tooltip);
+
+                bigLogo.addEventListener('mouseover', () => {
+                    tooltip.style.visibility = 'visible';
+                    tooltip.style.opacity = '1';
+                    tooltip.style.transform = 'scale(1)';
+                });
+
+                bigLogo.addEventListener('mousemove', (e) => {
+                    const scrollY = window.scrollY || window.pageYOffset;
+                    const scrollX = window.scrollX || window.pageXOffset;
+                    tooltip.style.top = `${e.clientY + scrollY + (window.webDeltaConfig.tooltipYOffset || 15)}px`;
+                    tooltip.style.left = `${e.clientX + scrollX + (window.webDeltaConfig.tooltipXOffset || 15)}px`;
+                });
+
+                bigLogo.addEventListener('mouseout', () => {
+                    tooltip.style.opacity = '0';
+                    tooltip.style.visibility = 'hidden';
+                    tooltip.style.transform = 'scale(0.8)';
+                });
+            }
+        });
+
+        window.webDeltaConfig = {
+            tooltipBorderRadius: '3px',
+            tooltipFont: '"Figtree", Helvetica Neue", Helvetica, sans-serif',
+            timeZone: 'UTC'
+        };
     </script>
 </body>
 </html>
