@@ -1,6 +1,7 @@
 window.webDeltaConfig = {
   tooltipBorderRadius: "5px",
   tooltipFont: "Menlo, monospaced",
+  tooltipFontSize: "15px",
   tooltipXOffset: 15,
   tooltipYOffset: 15,
   timeZone: "UTC",
@@ -99,6 +100,7 @@ document.addEventListener("DOMContentLoaded", function() {
     tooltip.style.color = window.webDeltaConfig.tooltipForegroundColor || "white";
     tooltip.style.borderRadius = window.webDeltaConfig.tooltipBorderRadius || "5px";
     tooltip.style.fontFamily = window.webDeltaConfig.tooltipFont || "Arial, sans-serif";
+    tooltip.style.fontSize = window.webDeltaConfig.tooltipFontSize || "15px";
     tooltip.style.whiteSpace = "nowrap";
     tooltip.style.visibility = "hidden";
     tooltip.style.opacity = "0";
