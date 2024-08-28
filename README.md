@@ -55,6 +55,7 @@ Include the script in your HTML:
 
 | Class       | Description                                                    |
 |-------------|----------------------------------------------------------------|
+| `raw`       | Don't reformat the date, preserve the UNIX timestamp.          |
 | `dateOnly`  | Display only the date (with time zone unless `noTZ` is present)|
 | `timeOnly`  | Display only the time (with time zone unless `noTZ` is present)|
 | `iso8601`   | Display the date and time in ISO 8601 format                   |
