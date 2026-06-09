@@ -25,7 +25,7 @@ https://thunderpoot.github.io/webdelta/
 Include the script in your HTML:
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/thunderpoot/webdelta@1.0.3/dist/webdelta.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/thunderpoot/webdelta@1.1.0/dist/webdelta.min.js"></script>
 ```
 
 #### Download:
@@ -67,6 +67,7 @@ Include the script in your HTML:
 | `utc`       | Force the date and time to be displayed in UTC                 |
 | `noTZ`      | Disable the time zone display                                  |
 | `noTooltip` | Disable the tooltip display                                    |
+| `swap`      | Show the live relative delta inline and the date in the tooltip|
 
 ### Configuration
 
@@ -82,11 +83,14 @@ You can customise the behaviour and appearance of `webdelta.js` by adding the fo
         tooltipYOffset: 20,
         timeZone: 'Europe/Madrid',
         lang: 'es', // Supports BCP47 values such as sv-SE or en-GB
+        numeric: 'auto', // 'auto' for "tomorrow"/"last week", 'always' for "in 1 day"
         tooltipBackgroundColor: '#333333',
         tooltipForegroundColor: '#ffcc00'
     };
 </script>
 ```
+
+All options are optional. In particular, `numeric` controls how relative deltas are worded: the default `'auto'` renders a difference of exactly one unit as a word (e.g. `tomorrow`, `yesterday`, `last week`), while `'always'` keeps it numeric (e.g. `in 1 day`, `1 day ago`).
 
 ### License
 

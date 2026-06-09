@@ -282,7 +282,7 @@
         <h3>CDN:</h3>
         <ol>
             <li><strong>Include the Script</strong>: Add the following line in your HTML to include the script.
-                <pre>&lt;script src="https://cdn.jsdelivr.net/gh/thunderpoot/webdelta@1.0.3/dist/webdelta.min.js"&gt;&lt;/script&gt;</pre>
+                <pre>&lt;script src="https://cdn.jsdelivr.net/gh/thunderpoot/webdelta@1.1.0/dist/webdelta.min.js"&gt;&lt;/script&gt;</pre>
         </ol>
         <h3>Download:</h3>
         <ol>
@@ -364,6 +364,11 @@
                 <span class="webDelta noTZ">119731017</span>
                 <pre>&lt;span class="webDelta<strong class="hl-class"> noTZ</strong>"&gt;119731017&lt;/span&gt;</pre>
             </div>
+
+            <div class="example">
+                <span class="webDelta swap">119731017</span>
+                <pre>&lt;span class="webDelta<strong class="hl-class"> swap</strong>"&gt;119731017&lt;/span&gt;</pre>
+            </div>
         </div>
 
         <div class="classes-section">
@@ -425,6 +430,10 @@
                         <td><code>noTooltip</code></td>
                         <td>Disable the tooltip display.</td>
                     </tr>
+                    <tr>
+                        <td><code>swap</code></td>
+                        <td>Show the live relative delta inline and move the date/time string into the tooltip.</td>
+                    </tr>
                 </tbody>
             </table>
         </div>
@@ -442,10 +451,12 @@
         tooltipYOffset: 20,
         timeZone: 'Europe/Madrid',
         lang: 'es', // Supports BCP47 values such as sv-SE or en-GB
+        numeric: 'auto', // 'auto' for "tomorrow"/"last week", 'always' for "in 1 day"
         tooltipBackgroundColor: '#333333',
         tooltipForegroundColor: '#ffcc00'
     };
 &lt;/script&gt;</pre>
+            <p>The <code>numeric</code> option controls how relative deltas are worded. The default <code>'auto'</code> renders a difference of exactly one unit as a word (<code>tomorrow</code>, <code>yesterday</code>, <code>last week</code>), while <code>'always'</code> keeps it numeric (<code>in 1 day</code>, <code>1 day ago</code>).</p>
         </div>
     </div>
 
@@ -454,10 +465,28 @@
         <p>&copy; 2024 T E Vaughan. Check out the project on <a href="https://github.com/thunderpoot/webdelta" target="_blank">GitHub</a>.</p>
     </footer>
 
-    <script src="https://cdn.jsdelivr.net/gh/thunderpoot/webdelta@1.0.3/dist/webdelta.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/thunderpoot/webdelta@1.1.0/dist/webdelta.min.js"></script>
+    
 
     <!-- Custom script for demo -->
     <script>
+        // Default the example timestamps to 45 seconds after page load, so the
+        // examples (especially "swap") show a live countdown that ticks down to
+        // "now" and then forward, demonstrating the relative-delta updating.
+        const defaultTimestamp = Math.floor(Date.now() / 1000) + 45;
+        document.querySelectorAll('.examples-section .example').forEach(function (example) {
+            const span = example.querySelector('span.webDelta');
+            if (span) {
+                span.textContent = defaultTimestamp;
+            }
+            const pre = example.querySelector('pre');
+            if (pre) {
+                // Keep the displayed markup consistent with what is rendered,
+                // preserving the class-name highlighting.
+                pre.innerHTML = pre.innerHTML.replace(/119731017/g, defaultTimestamp);
+            }
+        });
+
         // Capture each webDelta span's original UNIX timestamp before the library
         // formats it. This runs synchronously during parsing, before the library's
         // DOMContentLoaded handler fires, so the demo can re-render repeatedly

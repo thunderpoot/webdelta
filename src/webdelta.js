@@ -33,15 +33,37 @@ window.webDeltaConfig = {
     tooltipForegroundColor: 'white'
 };
 
+// Per-element state (live-update timers and the created tooltip), kept at module
+// scope so it survives repeat runs. Re-running the formatter on the same element
+// (e.g. when an embedding page re-renders after the timestamp changes) must clear
+// the previous run's timers, otherwise stacked intervals fight over the element
+// and the text flickers between values.
+const webDeltaState = new WeakMap();
+
 document.addEventListener("DOMContentLoaded", function () {
     const elements = document.querySelectorAll('span.webDelta');
 
     elements.forEach(element => {
+        // Tear down anything left over from a previous run on this element.
+        const previousState = webDeltaState.get(element);
+        if (previousState) {
+            clearTimeout(previousState.timeoutId);
+            clearInterval(previousState.intervalId);
+            if (previousState.tooltip) {
+                previousState.tooltip.remove();
+            }
+        }
+        const state = {};
+        webDeltaState.set(element, state);
+
         const timestamp = parseInt(element.textContent.trim());
         const date = new Date(timestamp * 1000);
         const useUTC = element.classList.contains('utc');
         const timeZone = useUTC ? 'UTC' : (window.webDeltaConfig.timeZone || Intl.DateTimeFormat().resolvedOptions().timeZone);
         const locale = window.webDeltaConfig.lang || undefined;
+        // Controls relative-time wording: 'auto' renders ±1 of a unit as words
+        // ("tomorrow", "last week"), 'always' keeps it numeric ("in 1 day").
+        const numeric = window.webDeltaConfig.numeric || 'auto';
         let options = { timeZone: timeZone };
 
         let formattedDate = '';
@@ -117,91 +139,115 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         }
 
-        element.textContent = formattedDate;
+        // The 'swap' class inverts the two pieces of information: the live relative
+        // delta is shown inline, and the static formatted date moves into the tooltip.
+        const swap = element.classList.contains('swap');
 
-        if (element.classList.contains('noTooltip')) {
-            return;
-        }
-
-        if (element.nextElementSibling && element.nextElementSibling.classList.contains('webDelta-tooltip')) {
-            element.nextElementSibling.remove();
-        }
-
-        const tooltip = document.createElement('span');
-        tooltip.className = 'webDelta-tooltip';
-        tooltip.style.position = 'absolute';
-        tooltip.style.padding = '8px';
-        tooltip.style.backgroundColor = window.webDeltaConfig.tooltipBackgroundColor || 'black';
-        tooltip.style.color = window.webDeltaConfig.tooltipForegroundColor || 'white';
-        tooltip.style.borderRadius = window.webDeltaConfig.tooltipBorderRadius || '5px';
-        tooltip.style.fontFamily = window.webDeltaConfig.tooltipFont || 'Arial, sans-serif';
-        tooltip.style.fontSize = window.webDeltaConfig.tooltipFontSize || '15px';
-        tooltip.style.whiteSpace = 'nowrap';
-        tooltip.style.visibility = 'hidden';
-        tooltip.style.opacity = '0';
-        tooltip.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
-        tooltip.style.pointerEvents = 'none';
-        tooltip.style.transform = 'scale(0.8)';
-        tooltip.style.zIndex = '1000';
-
-        document.body.appendChild(tooltip);
-
-        const updateTooltip = () => {
+        // Compute the relative-time ("delta") string for the current moment.
+        const formatDelta = () => {
             const now = new Date();
-            const timeDiff = date - now;
+            const timeDiff = date - now;       // ms; negative = past, positive = future
             const absDiff = Math.abs(timeDiff);
 
-            const rtf = new Intl.RelativeTimeFormat(locale, { numeric: 'auto' });
+            const rtf = new Intl.RelativeTimeFormat(locale, { numeric: numeric });
 
-            let timeAgo = '';
+            // Unit lengths in milliseconds. Month and year use average lengths so
+            // long spans don't drift against uneven months and leap years.
+            const SECOND = 1000;
+            const MINUTE = 60 * SECOND;
+            const HOUR = 60 * MINUTE;
+            const DAY = 24 * HOUR;
+            const WEEK = 7 * DAY;
+            const MONTH = 30.4375 * DAY;  // 365.25 / 12
+            const YEAR = 365.25 * DAY;
 
-            if (absDiff >= 31536000000) { // years
-                const years = Math.floor(timeDiff / 31536000000);
-                timeAgo = rtf.format(years, 'year');
-            } else if (absDiff >= 86400000) { // days
-                const days = Math.floor(timeDiff / 86400000);
-                timeAgo = rtf.format(days, 'day');
-            } else if (absDiff >= 3600000) { // hours
-                const hours = Math.floor(timeDiff / 3600000);
-                timeAgo = rtf.format(hours, 'hour');
-            } else if (absDiff >= 60000) { // minutes
-                const minutes = Math.floor(timeDiff / 60000);
-                timeAgo = rtf.format(minutes, 'minute');
-            } else { // seconds
-                const seconds = Math.floor(timeDiff / 1000);
-                timeAgo = rtf.format(seconds, 'second');
+            // Choose the unit by magnitude, then round to the nearest whole unit
+            // (symmetric for past and future). Each threshold sits at the midpoint
+            // where rounding would tip into the next unit (e.g. 59.5 minutes), so
+            // the result never reads "60 minutes" or "24 hours".
+            let divisor, unit;
+            if (absDiff >= 11.5 * MONTH) { divisor = YEAR; unit = 'year'; }
+            else if (absDiff >= MONTH) { divisor = MONTH; unit = 'month'; }
+            else if (absDiff >= 6.5 * DAY) { divisor = WEEK; unit = 'week'; }
+            else if (absDiff >= 23.5 * HOUR) { divisor = DAY; unit = 'day'; }
+            else if (absDiff >= 59.5 * MINUTE) { divisor = HOUR; unit = 'hour'; }
+            else if (absDiff >= 59.5 * SECOND) { divisor = MINUTE; unit = 'minute'; }
+            else { divisor = SECOND; unit = 'second'; }
+
+            return rtf.format(Math.round(timeDiff / divisor), unit);
+        };
+
+        // Inline text: live delta when swapped, otherwise the formatted date.
+        element.textContent = swap ? formatDelta() : formattedDate;
+
+        const hasTooltip = !element.classList.contains('noTooltip');
+        let tooltip = null;
+
+        if (hasTooltip) {
+            tooltip = document.createElement('span');
+            tooltip.className = 'webDelta-tooltip';
+            tooltip.style.position = 'absolute';
+            tooltip.style.padding = '8px';
+            tooltip.style.backgroundColor = window.webDeltaConfig.tooltipBackgroundColor || 'black';
+            tooltip.style.color = window.webDeltaConfig.tooltipForegroundColor || 'white';
+            tooltip.style.borderRadius = window.webDeltaConfig.tooltipBorderRadius || '5px';
+            tooltip.style.fontFamily = window.webDeltaConfig.tooltipFont || 'Arial, sans-serif';
+            tooltip.style.fontSize = window.webDeltaConfig.tooltipFontSize || '15px';
+            tooltip.style.whiteSpace = 'nowrap';
+            tooltip.style.visibility = 'hidden';
+            tooltip.style.opacity = '0';
+            tooltip.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+            tooltip.style.pointerEvents = 'none';
+            tooltip.style.transform = 'scale(0.8)';
+            tooltip.style.zIndex = '1000';
+
+            // When swapped, the tooltip shows the static formatted date.
+            if (swap) {
+                tooltip.textContent = formattedDate;
             }
 
-            tooltip.textContent = timeAgo;
-        };
+            document.body.appendChild(tooltip);
+            state.tooltip = tooltip;
 
-        const startInterval = () => {
-            updateTooltip();
-            setInterval(updateTooltip, 1000);
-        };
+            element.addEventListener('mouseover', () => {
+                tooltip.style.visibility = 'visible';
+                tooltip.style.opacity = '1';
+                tooltip.style.transform = 'scale(1)';
+            });
 
-        const now = new Date();
-        const delay = 1000 - now.getMilliseconds();
+            element.addEventListener('mousemove', (e) => {
+                const scrollY = window.scrollY || window.pageYOffset;
+                const scrollX = window.scrollX || window.pageXOffset;
+                tooltip.style.top = `${e.clientY + scrollY + (window.webDeltaConfig.tooltipYOffset || 15)}px`;
+                tooltip.style.left = `${e.clientX + scrollX + (window.webDeltaConfig.tooltipXOffset || 15)}px`;
+            });
 
-        setTimeout(startInterval, delay);
+            element.addEventListener('mouseout', () => {
+                tooltip.style.opacity = '0';
+                tooltip.style.visibility = 'hidden';
+                tooltip.style.transform = 'scale(0.8)';
+            });
+        }
 
-        element.addEventListener('mouseover', () => {
-            tooltip.style.visibility = 'visible';
-            tooltip.style.opacity = '1';
-            tooltip.style.transform = 'scale(1)';
-        });
+        // The live delta updates every second. It targets the inline element when
+        // swapped, otherwise the tooltip. When not swapped and there is no tooltip,
+        // nothing needs live updating.
+        const liveTarget = swap ? element : tooltip;
 
-        element.addEventListener('mousemove', (e) => {
-            const scrollY = window.scrollY || window.pageYOffset;
-            const scrollX = window.scrollX || window.pageXOffset;
-            tooltip.style.top = `${e.clientY + scrollY + (window.webDeltaConfig.tooltipYOffset || 15)}px`;
-            tooltip.style.left = `${e.clientX + scrollX + (window.webDeltaConfig.tooltipXOffset || 15)}px`;
-        });
+        if (liveTarget) {
+            const updateDelta = () => {
+                liveTarget.textContent = formatDelta();
+            };
 
-        element.addEventListener('mouseout', () => {
-            tooltip.style.opacity = '0';
-            tooltip.style.visibility = 'hidden';
-            tooltip.style.transform = 'scale(0.8)';
-        });
+            const startInterval = () => {
+                updateDelta();
+                state.intervalId = setInterval(updateDelta, 1000);
+            };
+
+            const now = new Date();
+            const delay = 1000 - now.getMilliseconds();
+
+            state.timeoutId = setTimeout(startInterval, delay);
+        }
     });
 });
