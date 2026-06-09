@@ -4,7 +4,9 @@ window.webDeltaConfig = {
   tooltipFontSize: "15px",
   tooltipXOffset: 15,
   tooltipYOffset: 15,
-  timeZone: "UTC",
+  // No timeZone default: when unset, times render in the browser's local
+  // time zone via Intl.DateTimeFormat().resolvedOptions().timeZone (see below).
+  // Set window.webDeltaConfig.timeZone to force a specific zone.
   lang: "en",
   // Supports BCP47 values such as sv-SE or en-GB
   tooltipBackgroundColor: "black",
