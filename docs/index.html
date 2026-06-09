@@ -450,7 +450,7 @@
     </div>
 
     <footer>
-        <p>This documentation was written on <span class="webDelta weekday">1724769141</span>.</p>
+        <p>This documentation was updated on <span class="webDelta weekday">1781009836</span>.</p>
         <p>&copy; 2024 T E Vaughan. Check out the project on <a href="https://github.com/thunderpoot/webdelta" target="_blank">GitHub</a>.</p>
     </footer>
 
@@ -458,6 +458,14 @@
 
     <!-- Custom script for demo -->
     <script>
+        // Capture each webDelta span's original UNIX timestamp before the library
+        // formats it. This runs synchronously during parsing, before the library's
+        // DOMContentLoaded handler fires, so the demo can re-render repeatedly
+        // without re-parsing already-formatted text (which produced "Invalid timestamp").
+        document.querySelectorAll('span.webDelta').forEach(function (span) {
+            span.dataset.webdeltaOriginal = span.textContent.trim();
+        });
+
         function convertTimestamp() {
             const existingTooltips = document.querySelectorAll('.webDelta-tooltip');
             existingTooltips.forEach(tooltip => tooltip.remove());
@@ -468,6 +476,13 @@
             const parsedTimestamp = parseInt(timestampInput);
             if (!isNaN(parsedTimestamp)) {
                 errorMessage.style.display = 'none';
+
+                // Restore every webDelta span to its raw timestamp first, so re-running
+                // the formatter is idempotent (e.g. the footer span is not an example
+                // and would otherwise be re-parsed from its already-formatted text).
+                document.querySelectorAll('span.webDelta').forEach(function (span) {
+                    span.textContent = span.dataset.webdeltaOriginal;
+                });
 
                 const examples = document.querySelectorAll('.examples-section .example');
 
