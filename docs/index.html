@@ -263,11 +263,12 @@
     </header>
     <div class="container">
         <h2>Description</h2>
-        <p><code>webdelta.js</code> is a versatile JavaScript utility that allows you to easily convert UNIX timestamps into human-readable dates, times, and relative time descriptions directly on your webpages. This script dynamically displays time information with customisable tooltips and formats.</p>
-        <p>Simply include the script, to make any element with the <code>webDelta</code> class (which contains a valid UNIX timestamp) will be displayed as a time/date string with a tooltip that displays the time until (or since) the given timestamp.  See below for examples.</p>
+        <p><code>webdelta.js</code> is a versatile JavaScript utility that allows you to easily convert UNIX timestamps and ISO 8601 date/time strings into human-readable dates, times, and relative time descriptions directly on your webpages. This script dynamically displays time information with customisable tooltips and formats.</p>
+        <p>Simply include the script, and any element with the <code>webDelta</code> class will be displayed as a time/date string with a tooltip showing the time until (or since) the given moment. The element's contents can be a UNIX timestamp or an ISO 8601 wall-clock string (see the <a href="#wallclock">Wall-clock &amp; AoE</a> section), including an <code>aoe</code> mode for "Anywhere on Earth" conference deadlines. See below for examples.</p>
         <h2>Features</h2>
         <ul>
-            <li><strong>Automatic Conversion</strong>: Converts UNIX timestamps to readable date and time formats.</li>
+            <li><strong>Flexible Input</strong>: Accepts UNIX timestamps or ISO 8601 wall-clock strings, including an <code>aoe</code> ("Anywhere on Earth", UTC&minus;12) mode for conference deadlines.</li>
+            <li><strong>Automatic Conversion</strong>: Converts UNIX timestamps and ISO 8601 strings to readable date and time formats.</li>
             <li><strong>Time Zone Support</strong>: Automatically displays times in the user's local time zone or a custom time zone of your choice.</li>
             <li><strong>Localised</strong>: Makes use of the JavaScript Intl API to support <a target="_blank" href="https://www.iana.org/assignments/language-subtag-registry/language-subtag-registry">multiple locales</a>.</li>
             <li><strong>Relative Time Descriptions</strong>: Displays relative time (e.g., "2 minutes ago" or "in 3 days") with live updating tooltips.</li>
@@ -282,7 +283,7 @@
         <h3>CDN:</h3>
         <ol>
             <li><strong>Include the Script</strong>: Add the following line in your HTML to include the script.
-                <pre>&lt;script src="https://cdn.jsdelivr.net/gh/thunderpoot/webdelta@1.1.0/dist/webdelta.min.js"&gt;&lt;/script&gt;</pre>
+                <pre>&lt;script src="https://cdn.jsdelivr.net/gh/thunderpoot/webdelta@1.2.0/dist/webdelta.min.js"&gt;&lt;/script&gt;</pre>
         </ol>
         <h3>Download:</h3>
         <ol>
@@ -294,7 +295,7 @@
 
         <h2>Demo</h2>
         <div class="input-section">
-            <label for="timestamp">Enter a UNIX Timestamp to update the examples below:</label>
+            <label for="timestamp">Enter a UNIX Timestamp or ISO 8601 wall-clock string to update the examples below:</label>
             <input type="text" id="timestamp" placeholder="Enter a UNIX timestamp, e.g.: 119731017">
             <!-- ♥️ https://en.wikipedia.org/wiki/Unix_time#Notable_events_in_Unix_time -->
             <input type="button" value="Go" onclick="convertTimestamp()">
@@ -371,6 +372,34 @@
             </div>
         </div>
 
+        <!-- Wall-clock / AoE examples. Kept in a separate container (not
+             .examples-section) so the demo's timestamp-rewrite loop leaves the
+             wall-clock strings untouched. -->
+        <div class="wallclock-section" id="wallclock">
+            <h2>Wall-clock &amp; AoE</h2>
+            <p>As well as UNIX timestamps, <code>webdelta.js</code> accepts ISO 8601 wall-clock strings. The source zone must be explicit: either an offset baked into the string (e.g. <code>2026-06-09T23:59:00+01:00</code>), or the <code>aoe</code> class, which interprets the time as <a target="_blank" href="https://en.wikipedia.org/wiki/Anywhere_on_Earth">Anywhere on Earth</a> (UTC&minus;12), the standard for conference and CFP deadlines. A bare wall-clock with no zone is rejected rather than silently assumed to be your local time. With <code>aoe</code>, a missing component defaults to the end of the stated precision (<code>T23:59</code> &rarr; <code>:59</code>, a bare date &rarr; end of day), so a deadline is never moved earlier. Each example below is shown converted to <em>your</em> local time.</p>
+
+            <div class="example">
+                <span class="webDelta aoe swap">2026-06-09T23:59</span>
+                <pre>&lt;span class="webDelta<strong class="hl-class"> aoe swap</strong>"&gt;2026-06-09T23:59&lt;/span&gt;</pre>
+            </div>
+
+            <div class="example">
+                <span class="webDelta aoe">2026-12-01T23:59</span>
+                <pre>&lt;span class="webDelta<strong class="hl-class"> aoe</strong>"&gt;2026-12-01T23:59&lt;/span&gt;</pre>
+            </div>
+
+            <div class="example">
+                <span class="webDelta aoe dateOnly">2026-09-15</span>
+                <pre>&lt;span class="webDelta<strong class="hl-class"> aoe</strong> dateOnly"&gt;2026-09-15&lt;/span&gt;</pre>
+            </div>
+
+            <div class="example">
+                <span class="webDelta">2026-06-09T23:59:00+01:00</span>
+                <pre>&lt;span class="webDelta"&gt;2026-06-09T23:59:00<strong class="hl-class">+01:00</strong>&lt;/span&gt;</pre>
+            </div>
+        </div>
+
         <div class="classes-section">
             <h2>Available Options</h2>
             <p>The following class attributes may be used to specify parameters for <code>webdelta.js</code>.  Some are mutually exclusive.</p>
@@ -434,6 +463,10 @@
                         <td><code>swap</code></td>
                         <td>Show the live relative delta inline and move the date/time string into the tooltip.</td>
                     </tr>
+                    <tr>
+                        <td><code>aoe</code></td>
+                        <td>Interpret an ISO 8601 wall-clock string as Anywhere on Earth (UTC&minus;12). A missing seconds/time component defaults to the end of the stated precision (e.g. <code>T23:59</code> &rarr; <code>:59</code>, a bare date &rarr; end of day), so a deadline is never moved earlier.</td>
+                    </tr>
                 </tbody>
             </table>
         </div>
@@ -461,12 +494,12 @@
     </div>
 
     <footer>
-        <p>This documentation was updated on <span class="webDelta weekday">1781009836</span>.</p>
+        <p>This documentation was updated on <span class="webDelta dateOnly weekday noTZ">2026-06-10T12:30:00Z</span>.</p>
         <p>&copy; 2024 T E Vaughan. Check out the project on <a href="https://github.com/thunderpoot/webdelta" target="_blank">GitHub</a>.</p>
     </footer>
 
-    <script src="https://cdn.jsdelivr.net/gh/thunderpoot/webdelta@1.1.0/dist/webdelta.min.js"></script>
-    
+    <script src="https://cdn.jsdelivr.net/gh/thunderpoot/webdelta@1.2.0/dist/webdelta.min.js"></script>
+
 
     <!-- Custom script for demo -->
     <script>

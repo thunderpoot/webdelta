@@ -26,22 +26,46 @@ document.addEventListener("DOMContentLoaded", function() {
     }
     const state = {};
     webDeltaState.set(element, state);
-    const timestamp = parseInt(element.textContent.trim());
-    const date = new Date(timestamp * 1e3);
+    const rawValue = element.textContent.trim();
+    const isAoe = element.classList.contains("aoe");
+    const isEpoch = /^[+-]?\d+$/.test(rawValue);
+    const zoneRe = /(Z|[+-]\d{2}:?\d{2})$/i;
+    let date;
+    if (isEpoch && !isAoe) {
+      date = new Date(parseInt(rawValue, 10) * 1e3);
+    } else if (isAoe) {
+      let iso = rawValue;
+      if (zoneRe.test(iso)) {
+        console.warn(`webDelta: 'aoe' overrides the explicit zone in "${rawValue}"`);
+        iso = iso.replace(zoneRe, "");
+      }
+      if (!/T/.test(iso)) {
+        iso += "T23:59:59";
+      } else if (/T\d{2}:\d{2}$/.test(iso)) {
+        iso += ":59";
+      }
+      date = /* @__PURE__ */ new Date(`${iso}-12:00`);
+    } else if (zoneRe.test(rawValue)) {
+      date = new Date(rawValue);
+    } else {
+      console.error(`webDelta: wall-clock "${rawValue}" has no time zone; add an offset (e.g. +01:00) or the 'aoe' class`);
+      element.textContent = "Invalid time (no time zone)";
+      return;
+    }
     const useUTC = element.classList.contains("utc");
     const timeZone = useUTC ? "UTC" : window.webDeltaConfig.timeZone || Intl.DateTimeFormat().resolvedOptions().timeZone;
     const locale = window.webDeltaConfig.lang || void 0;
     const numeric = window.webDeltaConfig.numeric || "auto";
     let options = { timeZone };
     let formattedDate = "";
+    if (isNaN(date.getTime())) {
+      console.error(`Invalid timestamp: ${rawValue}`);
+      element.textContent = "Invalid timestamp";
+      return;
+    }
     if (element.classList.contains("raw")) {
-      formattedDate = timestamp;
+      formattedDate = rawValue;
     } else {
-      if (isNaN(timestamp)) {
-        console.error(`Invalid timestamp: ${element.textContent.trim()}`);
-        element.textContent = "Invalid timestamp";
-        return;
-      }
       if (element.classList.contains("timeOnly")) {
         options = {
           hour: "numeric",

@@ -56,8 +56,58 @@ document.addEventListener("DOMContentLoaded", function () {
         const state = {};
         webDeltaState.set(element, state);
 
-        const timestamp = parseInt(element.textContent.trim());
-        const date = new Date(timestamp * 1000);
+        // Resolve the element's contents to an absolute instant. Two input
+        // families are accepted:
+        //
+        //   1. UNIX epoch seconds: an optional-sign run of digits. This is the
+        //      original, unambiguous input and remains the default.
+        //   2. ISO 8601 wall-clock: a date/time string. A wall-clock has no
+        //      meaning until we know *which* zone it is in, and the conversion
+        //      to the viewer's local time is the whole point of the library, so
+        //      the source zone must be explicit. It can be supplied two ways:
+        //        - an offset baked into the string (e.g. ...T23:59:00+01:00),
+        //          which Date parses natively, or
+        //        - the `aoe` class, a preset for "Anywhere on Earth" (UTC-12),
+        //          the standard for conference / CFP deadlines.
+        //      A bare wall-clock with neither is rejected rather than silently
+        //      assumed to be the viewer's local time, which would misconvert a
+        //      deadline an organiser published in their own zone.
+        const rawValue = element.textContent.trim();
+        const isAoe = element.classList.contains('aoe');
+        const isEpoch = /^[+-]?\d+$/.test(rawValue);
+        // Matches a trailing zone designator: Z, or ±HH:MM / ±HHMM.
+        const zoneRe = /(Z|[+-]\d{2}:?\d{2})$/i;
+
+        let date;
+        if (isEpoch && !isAoe) {
+            date = new Date(parseInt(rawValue, 10) * 1000);
+        } else if (isAoe) {
+            // Pin the wall-clock to UTC-12. Strip any zone the author included
+            // (it is meaningless alongside aoe) and warn if so.
+            let iso = rawValue;
+            if (zoneRe.test(iso)) {
+                console.warn(`webDelta: 'aoe' overrides the explicit zone in "${rawValue}"`);
+                iso = iso.replace(zoneRe, '');
+            }
+            // Conference deadlines are quoted to the end of the stated
+            // precision: "...T23:59" means 23:59:59, and a bare date means the
+            // end of that day. Default the missing components accordingly so a
+            // deadline is never silently moved earlier.
+            if (!/T/.test(iso)) {
+                iso += 'T23:59:59';
+            } else if (/T\d{2}:\d{2}$/.test(iso)) {
+                iso += ':59';
+            }
+            date = new Date(`${iso}-12:00`);
+        } else if (zoneRe.test(rawValue)) {
+            // Wall-clock with an explicit offset: parse as the absolute instant.
+            date = new Date(rawValue);
+        } else {
+            console.error(`webDelta: wall-clock "${rawValue}" has no time zone; add an offset (e.g. +01:00) or the 'aoe' class`);
+            element.textContent = "Invalid time (no time zone)";
+            return;
+        }
+
         const useUTC = element.classList.contains('utc');
         const timeZone = useUTC ? 'UTC' : (window.webDeltaConfig.timeZone || Intl.DateTimeFormat().resolvedOptions().timeZone);
         const locale = window.webDeltaConfig.lang || undefined;
@@ -68,16 +118,17 @@ document.addEventListener("DOMContentLoaded", function () {
 
         let formattedDate = '';
 
+        if (isNaN(date.getTime())) {
+            console.error(`Invalid timestamp: ${rawValue}`);
+            element.textContent = "Invalid timestamp";
+            return;
+        }
+
         if (element.classList.contains('raw')) {
-            formattedDate = timestamp;
+            // Preserve exactly what the author wrote (epoch or wall-clock).
+            formattedDate = rawValue;
         }
         else {
-            if (isNaN(timestamp)) {
-                console.error(`Invalid timestamp: ${element.textContent.trim()}`);
-                element.textContent = "Invalid timestamp";
-                return;
-            }
-
             if (element.classList.contains('timeOnly')) {
                 options = {
                     hour: 'numeric',
